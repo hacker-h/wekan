@@ -1,0 +1,18 @@
+dist: xenial
+
+jobs:
+  include:
+    - stage: build
+      name: "push latest image"
+      if: (branch = master AND NOT type = pull_request)
+      sudo: required
+      services:
+        - docker
+      script:
+        - git clone https://github.com/wekan/wekan wekan
+        - cd wekan
+        # disable compact mode
+        - sed -i 's/return $(window).width() <= 800;/return false;/g' client/lib/utils.js
+        - docker build -t hackerh/wekan:latest .
+        - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+        - docker push hackerh/wekan:latest
